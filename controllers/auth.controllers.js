@@ -1,16 +1,18 @@
-const userModel = require('../models/user.model')
-const bcrypt = require('bcrypt')
+const userModel = require("../models/user.model");
+const bcrypt = require("bcrypt");
+const res = require("express/lib/response");
+const jwt = require("jsonwebtoken");
+require('dotenv').config();
 
 exports.signup = async (req, res, next) => {
-
-   // récup des données dans body
-    const { pseudo, email, password, acceptTerm } = req.body;
+  // récup des données dans body
+  const { identifiant, email, password, acceptTerm } = req.body;
 
   bcrypt
     .hash(password, 10)
     .then((hash) => {
       const user = new userModel({
-        pseudo,
+        identifiant,
         email,
         password: hash,
         acceptTerm,
@@ -21,19 +23,70 @@ exports.signup = async (req, res, next) => {
         .catch((error) => res.status(400).json({ error }));
     })
     .catch((error) => res.status(500).json({ error }));
-
-   
-
-//     try {
-//  const user = await userModel.create({ name, email, password, acceptTerm });
-//  res.status(201).json({user: user._id}) 
-//     }
-//  catch(err) {res.status(201).json({ err });} 
-
-
 };
 
+exports.login = (req, res, next) => {
+  const { idConnexion, password } = req.body;
+  if (idConnexion == null) {
+    res.status(401).send("Saisir identifiant");
+    return;
+  }
+  if (password == null) {
+    res.status(401).send("Mot de passe obligatoire");
+    return;
+  }
 
 
+  userModel
+    .findOne({ email: idConnexion })
+    .then((user) => {
+      console.log("top1  ", user);
+      if (!user) {
+        return res.status(400).json({ error: "email non trouvé" });
+      }
+   console.log(`top3`, password, user.password, idConnexion);
 
-exports.login = (req, res, next) => {};
+      // Identifiant trouvé, vérification du mot de passe :
+       const userPassword = user.password;
+       const userIdentifiant = user.identifiant;
+      connectedUser(password, user.password, idConnexion);
+      /////////////////////////////////////////////////
+      const passwordValid = "";
+
+    
+        bcrypt
+          .compare(password, userPassword)
+          .then((passwordValid) => {
+            if (!passwordValid) {
+              return res
+                .status(401)
+                .json({ error: "Mot de passe incorrect !!!" });
+            }
+            // Mot de passe OK, création du token :
+                        var token = jwt.sign(
+                          { "idConnexion: ": idConnexion },
+                          process.env.PRIVATE_KEY
+                        );
+
+            res.status(200).json({ "identifiant: ": userIdentifiant, token });
+          })
+          .catch((error) => {
+            console.log(`top5`);
+            res
+              .status(500)
+              .json({ error: "impossible décrypter mot de passe" });
+          });
+      /////////////////////////////////////////////////
+    })
+
+    .catch((err) => {
+      res.status(401).send("Erreur Serveur");
+      return;
+    });
+};
+
+function connectedUser(password, userPassword, idConnexion) {
+ 
+      
+        }
+    
