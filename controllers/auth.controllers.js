@@ -6,17 +6,19 @@ require('dotenv').config();
 
 exports.signup = async (req, res, next) => {
   // récup des données dans body
-  const { identifiant, email, password, acceptTerm } = req.body;
-
+  const { pseudo, email, password, acceptTerm } = req.body;
+ console.log(req.body);
   bcrypt
     .hash(password, 10)
     .then((hash) => {
       const user = new userModel({
-        identifiant,
+        pseudo,
         email,
         password: hash,
-        acceptTerm,
+        acceptTerm
       });
+
+      console.log(user)
       user
         .save()
         .then(() => res.status(201).json({ message: "Utilisateur créé !" }))
@@ -48,7 +50,7 @@ exports.login = (req, res, next) => {
 
       // Identifiant trouvé, vérification du mot de passe :
        const userPassword = user.password;
-       const userIdentifiant = user.identifiant;
+       const userPseudo = user.pseudo;
       connectedUser(password, user.password, idConnexion);
       /////////////////////////////////////////////////
       const passwordValid = "";
@@ -68,7 +70,7 @@ exports.login = (req, res, next) => {
                           process.env.PRIVATE_KEY
                         );
 
-            res.status(200).json({ "identifiant: ": userIdentifiant, token });
+            res.status(200).json({ "pseudo: ": userPseudo, token });
           })
           .catch((error) => {
             console.log(`top5`);
