@@ -5,9 +5,9 @@ const jwt = require("jsonwebtoken");
 require('dotenv').config();
 
 exports.signup = async (req, res, next) => {
-  // récup des données dans body
-  const { pseudo, email, password, acceptTerm } = req.body;
- console.log(req.body);
+ // récup des données dans body
+    const { pseudo, email, password, acceptTerm } = req.body;
+
   bcrypt
     .hash(password, 10)
     .then((hash) => {
@@ -16,9 +16,7 @@ exports.signup = async (req, res, next) => {
         email,
         password: hash,
         acceptTerm
-      });
-
-      console.log(user)
+          });
       user
         .save()
         .then(() => res.status(201).json({ message: "Utilisateur créé !" }))
@@ -28,6 +26,7 @@ exports.signup = async (req, res, next) => {
 };
 
 exports.login = (req, res, next) => {
+
   const { idConnexion, password } = req.body;
   if (idConnexion == null) {
     res.status(401).send("Saisir identifiant");
@@ -42,20 +41,15 @@ exports.login = (req, res, next) => {
   userModel
     .findOne({ email: idConnexion })
     .then((user) => {
-      console.log("top1  ", user);
       if (!user) {
         return res.status(400).json({ error: "email non trouvé" });
       }
-   console.log(`top3`, password, user.password, idConnexion);
 
       // Identifiant trouvé, vérification du mot de passe :
        const userPassword = user.password;
        const userPseudo = user.pseudo;
-      connectedUser(password, user.password, idConnexion);
+   
       /////////////////////////////////////////////////
-      const passwordValid = "";
-
-    
         bcrypt
           .compare(password, userPassword)
           .then((passwordValid) => {
@@ -65,20 +59,19 @@ exports.login = (req, res, next) => {
                 .json({ error: "Mot de passe incorrect !!!" });
             }
             // Mot de passe OK, création du token :
-                        var token = jwt.sign(
-                          { "idConnexion: ": idConnexion },
-                          process.env.PRIVATE_KEY
-                        );
+          let key = process.env.PRIVATE_KEY;
+          const data = { "idConnexion: ": idConnexion};           
+          const token = jwt.sign(data, key, {
+            expiresIn: "1800s",
+          });
 
-            res.status(200).json({ "pseudo: ": userPseudo, token });
+            res.status(200).json({ user, token, key });
           })
           .catch((error) => {
-            console.log(`top5`);
             res
               .status(500)
               .json({ error: "impossible décrypter mot de passe" });
           });
-      /////////////////////////////////////////////////
     })
 
     .catch((err) => {
@@ -87,8 +80,11 @@ exports.login = (req, res, next) => {
     });
 };
 
-function connectedUser(password, userPassword, idConnexion) {
- 
-      
-        }
-    
+
+exports.update = (req, res, next) => {
+  userModel
+    .updateOne({ _id: req.params }, { ...req.body, _id: req.params })
+    .then(() => res.status(200).json({ message: `Utilisateur modifié !` }))
+    .catch((error) => res.status(400).json({ error }));
+};
+

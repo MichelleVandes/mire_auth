@@ -7,19 +7,27 @@ const userSchema = mongoose.Schema({
     type: String, 
     require: true, 
     trim: true, 
-    unique: true },
+    unique: true,
+    max:100 },
   email: {
     type: String,
     required: true,
     unique: true,
     lowercase: true,
     trim: true,
+    max:500
     //  validate: [ isEmail, 'invalid email' ]
   },
-  password: { type: String, required: true },
+  password: { type: String, required: true, min:8, max:50 },
   acceptTerm: { type: Boolean, require: true },
-});
+  
+},
+  {
+    timestamps: true,
+  });
 
+
+  
 userSchema.plugin(uniqueValidator);
 
 module.exports = mongoose.model("user", userSchema);
